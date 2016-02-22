@@ -1,0 +1,7 @@
+body {
+	padding-top: 60px;
+}
+
+#cytoscapeWeb1:focus{
+	outline: none;
+}

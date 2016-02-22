@@ -1,0 +1,113 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html>
+    
+    <head>
+        <title>PageRank</title>
+        
+        <script type="text/javascript" src="res/graphe/AC_OETags.min.js"></script>
+        <script type="text/javascript" src="res/graphe/json2.min.js"></script>
+        <script type="text/javascript" src="res/graphe/cytoscapeweb.min.js"></script>
+        
+        <script type="text/javascript">
+                window.onload = function() {
+                // id of Cytoscape Web container div
+                var div_id = "cytoscapeweb";
+                
+                labels = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"] 
+                m =[[0,0,0,1,0,1,0,0,0,0],
+                    [0,0,1,1,0,0,0,0,0,0],
+                    [0,0,0,1,0,0,0,0,0,0],
+                    [1,0,0,0,0,0,0,0,0,0],
+                    [0,0,0,1,0,1,0,0,0,0],
+                    [0,0,0,0,0,0,0,1,0,0],
+                    [0,0,0,1,0,1,0,0,0,0],
+                    [0,1,0,1,0,0,0,0,1,1],
+                    [0,0,0,0,0,0,0,0,0,0],
+                    [0,0,0,0,0,0,0,1,0,0]];
+                
+                pr = [0.213, 0.057, 0.044, 0.227, 0.02, 0.127, 0.02, 0.177, 0.057, 0.057]
+
+
+                // noeuds
+                noeuds = "";
+                for (var i = 0; i < labels.length; i++) {
+                    noeuds = noeuds + '<node id="'+i+'">' +
+                                '<data key="label">'+ labels[i] +'\n'+ /*Math.trunc*/(pr[i] * 100).toFixed(1) +'%</data>' +
+                                '<data key="weight">'+ pr[i] +'</data>' +
+                            '</node>';
+                }
+                // arcs
+                arcs = "";
+                for (var i = 0; i < labels.length; i++) {
+                    for (var j = 0; j < labels.length; j++) {
+                        if (m[i][j] == 1) {
+                            arcs = arcs +  '<edge source="'+i+'" target="'+j+'">' +
+                                        '<data key="label"></data>' +
+                                        '<data key="width">'+ /*Math.trunc*/(pr[i] * 100) +'</data>' +
+                                    '</edge>';
+                        }
+                    }
+                }
+                xml =   '<graphml>' +
+                            '<key id="label" for="all" attr.name="label" attr.type="string"/>' +
+                            '<key id="weight" for="node" attr.name="weight" attr.type="double"/>' +
+                            '<key id="width" for="edge" attr.name="width" attr.type="integer"/>' +
+                            '<graph edgedefault="directed">' +
+                                noeuds + 
+                                arcs + 
+                            '</graph>' +
+                        '</graphml>';                
+                var visual_style = {
+                    global: {
+                        backgroundColor: "#FFFFFF"
+                    },
+                    nodes: {
+                        shape: "ELIPSE",
+                        borderWidth: 3,
+                        borderColor: "#ABCFD6",
+                        size: {
+                            defaultValue: 25,
+                            continuousMapper: { attrName: "weight", minValue: 50, maxValue: 100 }
+
+                        },
+                        labelFontSize: 15,
+                        labelHorizontalAnchor: "center"
+                    },
+                    edges: {
+                        color: "#0B94B1",
+                        width: {
+                            defaultValue: 2,
+                            continuousMapper: {attrName: "width", minValue: 2, maxValue: 6  }
+                        }
+                    }
+                };
+                var options = {
+                    swfPath: "res/graphe/CytoscapeWeb",
+                    flashInstallerPath: "res/graphe/playerProductInstall"
+                };
+                var vis = new org.cytoscapeweb.Visualization(div_id, options);
+                var draw_options = {
+                    network: xml,
+                    layout: "Circle",
+                    visualStyle: visual_style,
+                    panZoomControlVisible: false 
+                };
+                vis.draw(draw_options);
+            };
+        </script>
+        
+        <style>
+            /* The Cytoscape Web container must have its dimensions set. */
+            html, body { height: 100%; width: 100%; padding: 0; margin: 0; }
+            #cytoscapeweb { width: 100%; height: 100%; }
+        </style>
+    </head>
+    
+    <body>
+        <div id="cytoscapeweb">
+            Cytoscape Web will replace the contents of this div with your graph.
+        </div>
+
+    </body>
+    
+</html>

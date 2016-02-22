@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+	<title>Mots clés</title>
+	<link href="res/bootstrap-3.3.6-dist/css/bootstrap.css" rel="stylesheet"/>
+	<link href="res/yamm/yamm.css" rel="stylesheet">
+	<link href="res/style.css" rel="stylesheet"/>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
+	<script src="res/bootstrap-3.3.6-dist/js/bootstrap.js"></script>
+
+	<script type="text/javascript" src="res/graphe/AC_OETags.min.js"></script>
+    <script type="text/javascript" src="res/graphe/json2.min.js"></script>
+	<script type="text/javascript" src="res/graphe/cytoscapeweb.min.js"></script>
+
+	<script type="text/javascript">
+		function pageRank(tabTuple, nbPage, d = .85, maxerr = .001) {
+			var nbLiensSortant = {};
+			var liensEntrant = {};
+			var r = [];
+			var ro = [];
+			for (var i = 0; i < nbPage; i++) {
+				nbLiensSortant[i] = 0;
+				liensEntrant[i] = [];
+				r[i] = 0;
+				ro[i] = 1;
+			}
+
+			for (var pos = 0; pos < tabTuple.length; pos++) {
+				var tuple = tabTuple[pos];
+
+				nbLiensSortant[tuple[0]] = nbLiensSortant[tuple[0]] + 1;
+				liensEntrant[tuple[1]].push(tuple[0]);
+			}
+
+			var diff = maxerr + 1;
+			while (diff > maxerr) {
+				var ro = r.slice();
+				for (var i = 0; i < nbPage; i++) {
+					var tab = [];
+					for (var j = 0; j < liensEntrant[i].length; j++) {
+						tab.push(ro[liensEntrant[i][j]] / nbLiensSortant[liensEntrant[i][j]]);
+					}
+
+					var somme = 0;
+					for (var k = 0; k < tab.length; k++) {
+						somme += tab[k];
+					}
+					r[i] = ((1-d) + d * somme);
+
+				}
+
+				diff = 0;
+				for (var l = 0; l < r.length; l++) {					
+					diff += Math.abs(r[l] - ro[l]);
+				}
+			}
+			var sr = 0;
+			for (var i = 0; i < r.length; i++) {
+				sr += r[i];
+			}
+			for (var i = 0; i < r.length; i++) {
+				r[i] /= sr;
+			}
+			return r
+		}
+
+		function afficherGraphe(labels, matrice, pageRanks){
+
+			var div_id = "cytoscapeweb";
+			// noeuds
+			noeuds = "";
+			for (var i = 0; i < labels.length; i++) {
+				noeuds = noeuds + '<node id="'+i+'">' +
+							'<data key="label">'+ labels[i] +'\n'+ (pageRanks[i] * 100).toFixed(1) +'%</data>' +
+							'<data key="weight">'+ pageRanks[i] +'</data>' +
+						'</node>';
+			}
+			// arcs
+			arcs = "";
+			for (var i = 0; i < labels.length; i++) {
+				for (var j = 0; j < labels.length; j++) {
+					if (matrice[i][j] == 1) {
+						arcs = arcs +  '<edge source="'+i+'" target="'+j+'">' +
+									'<data key="label"></data>' +
+									'<data key="width">'+ (pageRanks[i] * 100).toFixed(1) +'</data>' +
+								'</edge>';
+					}
+				}
+			}
+			xml =   '<graphml>' +
+						'<key id="label" for="all" attr.name="label" attr.type="string"/>' +
+						'<key id="weight" for="node" attr.name="weight" attr.type="double"/>' +
+						'<key id="width" for="edge" attr.name="width" attr.type="integer"/>' +
+						'<graph edgedefault="directed">' +
+							noeuds + 
+							arcs + 
+						'</graph>' +
+					'</graphml>';				
+			var visual_style = {
+				global: {
+					backgroundColor: "#FFFFFF"
+				},
+				nodes: {
+					shape: "ELIPSE",
+					borderWidth: 3,
+					borderColor: "#ABCFD6",
+					size: {
+						defaultValue: 25,
+						continuousMapper: { attrName: "weight", minValue: 50, maxValue: 100 }
+					},
+					labelFontSize: 15,
+					labelHorizontalAnchor: "center"
+				},
+				edges: {
+					color: "#0B94B1",
+					width: {
+						defaultValue: 2,
+						continuousMapper: {attrName: "width", minValue: 2, maxValue: 6  }
+					}
+				}
+			};
+			var options = {
+				swfPath: "res/graphe/CytoscapeWeb",
+				flashInstallerPath: "res/graphe/playerProductInstall"
+			};
+			var vis = new org.cytoscapeweb.Visualization(div_id, options);
+			var draw_options = {
+				network: xml,
+				layout: "Circle",
+				visualStyle: visual_style,
+				panZoomControlVisible: true 
+			};
+			vis.draw(draw_options);
+		}
+
+		function genererGraphe() {
+			var infos = JSON.parse("{"+ document.getElementById("matrice").value + "}");
+
+			var labels = Object.keys(infos);
+
+			var matrice = [];
+			for (i in infos) {
+				matrice.push(infos[i]);
+			}
+
+			var nbPage = labels.length;
+
+			var tabTuple = [];
+			for (var i = 0; i < nbPage; i++) {
+				for (var j = 0; j < nbPage; j++) {
+					if (matrice[i][j] == 1) tabTuple.push([i,j]);
+				}
+			}
+			var pageRanks = pageRank(tabTuple, nbPage, 0.85, 0.001);
+			console.log(pageRanks);
+			afficherGraphe(labels, matrice, pageRanks);
+		}
+	</script>
+
+
+</head>
+<body>
+	<nav class="navbar yamm navbar-default navbar-fixed-top " data-spy="affix" id="menu">
+		<div class="container">
+			<div class="navbar-header">
+				<a class="navbar-brand" href="index.html">
+					<span class="glyphicon glyphicon-home"></span>
+				</a>
+			</div>
+			<div class="collapse navbar-collapse">
+				<ul class="nav navbar-nav">
+					<li>				<a href="motsCle.html"	>Les Mots Clés</a></li>
+					<li>				<a href="recherche.html">Recherche Des Pages</a></li>
+					<li>				<a href="pageRank.html"	>Le calcul du PageRank</a></li>
+					<li class="active">	<a href="demo.html">Demo</a></li>
+				</ul>
+
+				<ul class="nav navbar-nav navbar-right">
+					<li class="dropdown">
+						<a href="#" class="dropdown-toggle" data-toggle="dropdown"><span class="glyphicon glyphicon-comment"></span> About</a>				
+						<ul class="dropdown-menu">
+							<li class="yamm-content">
+								<p>
+									Lorem ipsum dolor sit amet, consectetur adipiscing elit. Maecenas augue ex, sollicitudin interdum viverra pharetra, volutpat feugiat libero. Duis suscipit urna sem, quis aliquam nisi aliquet et. Phasellus a faucibus orci. Morbi consectetur, erat quis vehicula tempus, quam magna ultrices magna, id rhoncus sem nunc et odio. Maecenas non ipsum eget lacus commodo venenatis at non orci. Donec id ante lacinia, vehicula metus eu, semper leo. Fusce luctus rhoncus hendrerit. Morbi commodo, orci ac molestie elementum, neque elit laoreet eros, et interdum risus enim nec nulla. Nullam pulvinar justo quis orci semper bibendum. Ut hendrerit sem diam, et faucibus nisi lacinia at. Nam nec neque a felis aliquet dignissim non at quam.
+								</p>
+							</li>
+						</ul>				
+					</li>
+				</ul>
+			</div>
+		</div>
+	</nav>
+	<div class="container">
+		<h1>Démo <small>calcul du pageRank</small></h1>
+		<div class="row">
+			<div class="col-lg-12">
+				<p>
+					Cette démo permet de générer un graphe représentant un site à partir de sa <a href="https://fr.wikipedia.org/wiki/Matrice_d%27adjacence">matrice d'adjacence</a>.<br>
+					Il vous faut dont entrer cette matrice d'adjacence dans le champs prévu à cet effet tout en respectant la syntaxe de l'exemple. Celle-ci s'inspire du format JSON. N'oubliez pas les virgules.<br>
+					Le pageRank de chaque sommet va ensuite être calculé avec un <a href="pageRank.html#atte">facteur d'atténuation</a> de 0.85 et une marge d'erreur de 0.001.<br>
+					Pour finir, un graphe généré avec la librairie JavaScript <a href="http://cytoscapeweb.cytoscape.org/">CytoscapeWeb</a> apparaîtera en indiquant le nom des pages et leurs pageRank en pourcentage.<br>
+					La taille des sommets et des arcs sont proportionnels à leurs importance.
+				</p>
+			</div>
+		</div>
+		<hr>
+		<div class="row">
+			<div class="col-lg-3">
+				<div class="form-group">
+					<label for="matrice">Matrice d'adjacence représentant votre site:</label>
+					<textarea class="form-control" id="matrice" rows="10" style="font-family: mono,Consolas,Courier New,Courier,serif;">
+"A": [0,0,0,1,0,1,0,0,0,0],
+"B": [0,0,1,1,0,0,0,0,0,0],
+"C": [0,0,0,1,0,0,0,0,0,0],
+"D": [1,0,0,0,0,0,0,0,0,0],
+"E": [0,0,0,1,0,1,0,0,0,0],
+"F": [0,0,0,0,0,0,0,1,0,0],
+"G": [0,0,0,1,0,1,0,0,0,0],
+"H": [0,1,0,1,0,0,0,0,1,1],
+"I": [0,0,0,0,0,0,0,0,0,0],
+"J": [0,0,0,0,0,0,0,1,0,0]</textarea><br>
+					<button type="button" class="btn btn-primary" onclick="genererGraphe()">Générer le graphe</button>
+				</div>
+			</div>
+
+			<div class="col-lg-9">
+				<div id="cytoscapeweb" style="width: 100%; height: 400px;">
+					
+				</div>
+			</div>
+		</div>
+	</div>
+</body>
+</html>
