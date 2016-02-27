@@ -169,8 +169,76 @@
 							return r/sum(r) # tableau des pageRanks en pourcentage.
 					</textarea>
 					Vous pouvez observez le résultat en essayant la <a href="demo.html">démo</a>
+					<br>
+					Avant d'obtenir ce code, nous avons effectués plusieurs test pour trouver la maniere la plus rapide de calculer les pageRanks
 					</p>
-					<h4 style="color:red;">Avant d'obtenir ce code, nous avons effectués plusieurs test pour trouver la maniere la plus rapide de calculer les pr ( parler de toutes les améliorations faites</h4>
+
+					<div class="row center-block">
+						<div class="col-lg-6">
+							<h4><em>While</em> ou <em>Do While</em></h4>
+							Dans la premiere version de l'algorithme, nous utilisions un <em>While</em> ce qui nous obligait à initialiser la variable <b>ro</b> avant la boucle. Les tests suivant nous ont forcé de constater qu'utiliser un <em>do while</em> serait plus judicieux.
+							<pre>matrice de taille 10<br>	Avec while: 	en moyenne 0.0720 secondes<br>	Avec do While: 	en moyenne 0.0116 secondes<br>matrice de taille 20<br>	Avec while: 	en moyenne 0.8293 secondes<br>	Avec do While: 	en moyenne 0.1624 secondes<br>matrice de taille 40<br>	Avec while: 	en moyenne 11.4575 secondes<br>	Avec do While: 	en moyenne 2.3842 secondes</pre>
+						</div>
+						<div class="col-lg-6">
+							<h4><em>Un tuple de lignes et un de colonnes</em> ou <em>tableau de couple (ligne, colonne)</em></h4>
+							Initialement, pour représenter la matrice, nous passions en paramètre deux tuples. Un pour les lignes des elements de la matrice et un autre pour les colonnes. Nous nous somme demandé si ca ne serait pas plus rapide d'utiliser un tableau de tuple (ligne, colonne) afin de facilité le parcours. Les tests nous ont permis de choisir d'utiliser un tableau de tuple.
+							<pre>matrice de taille 20<br>	double tableau: 	1.0091 secondes<br>	tableau de couple:	0.0128 secondes<br>matrice de taille 40<br>	double tableau: 	13.1049 secondes<br>	tableau de couple:	0.04486 secondes<br>matrice de taille 80<br>	double tableau: 	186.0720 secondes<br>	tableau de couple: 	0.1621 secondes</pre>
+						</div>
+					</div>
+					<div class="row center-block">
+						<div class="col-lg-6">
+							<h4><em>range</em> ou <em>xrange</em></h4>
+							Nous nous sommes aussi demandé si utiliser <em>range</em> plutot que <em>xrange</em> serait plus rapide. Mais d'après les tests, cela ne change presque pas donc nous avons gardé <em>range</em>.
+							<pre>matrice de taille 1000<br>	xrange: 20.5327689648 secondes<br>	range:  20.5395901203 secondes</pre>
+						</div>
+						<div class="col-lg-6">
+							<h4>Utiliser les tableau numpy</h4>
+							Nous nous somme demandé si utiliser une autre structure de donnée que celle proposée par défaut pour stocker les tableau ne serait pas plus rapide. Apres un petit test, nous avons choisis d'utiliser les tableau dnarray de la librairie <em>numpy</em>
+							<pre>Pour une matrice de taille 100:<br>	avec numpy 	0.263270139694 secondes<br>	sans numpy	1.83428311348 secondes</pre>
+						</div>
+					</div>
+					<hr>
+					<p>
+					Voyons maintenant le temps que chaque opération prend dans le temps total du calcul du pageRank.<br></p>
+					<div class="row center-block">
+						<div class="col-lg-4">
+							Nous décomposons le programme en 6 partie:
+							<ul style="padding-top: 20px">
+								<li><b>tinit</b>: initialisation des variables</li>
+								<li><b>trempl</b>: remplissage des variables</li>
+								<li><b>initr</b>: initialisation de <b>r</b></li>
+								<li><b>copyr</b>: sauvegarde de <b>r</b></li>
+								<li><b>actupr</b>: actualisation des pageRanks</li>
+								<li><b>ret</b>: calcul du pourcentage</li>
+							</ul>
+						</div>
+						<div class="col-lg-8" style="border-left: 2px solid #EEE;">
+							Décomposition du temps sur une matrice de taille 500:
+							<table class="table table-hover table-condensed">
+							    <thead>
+							      <tr>
+							        <th></th>
+							        <th>Temps (seconde)</th>
+							        <th>Pourcentage</th>
+							        <th>Code</th>
+							      </tr>
+							    </thead>
+							    <tbody>
+								    <tr><td>tinit</td><td>0.000323057174683</td><td>0.00144766759116</td><td><a href="pageRank.html#code1"><span class="glyphicon glyphicon-link"></span></a></td></tr>
+									<tr><td>trempl</td><td>7.69943404198</td><td>34.5023172564</td><td><a href="pageRank.html#code1"><span class="glyphicon glyphicon-link"></span></a></td></tr>
+									<tr><td>initr</td><td>8.29696655273e-05</td><td>0.000371799499428</td><td><a href="pageRank.html#code2"><span class="glyphicon glyphicon-link"></span></a></td></tr>
+									<tr><td>copyr</td><td>3.81469726562e-05</td><td>0.000170942298587</td><td><a href="pageRank.html#code2"><span class="glyphicon glyphicon-link"></span></a></td></tr>
+									<tr><td>actupr</td><td>14.6154201031</td><td>65.4938867562</td><td><a href="pageRank.html#code3"><span class="glyphicon glyphicon-link"></span></a></td></tr>
+									<tr><td>ret</td><td>0.000402927398682</td><td>0.00180557802883</td><td><a href="pageRank.html#code3"><span class="glyphicon glyphicon-link"></span></a></td></tr>
+							    </tbody>
+							</table>
+						</div>
+					</div>
+					<p>
+						On remarque qu'environ un tier des opérations sont utilisés pour trouver le nombre de liens sortant de chaque page et les liens entrant des pages. Et environ 2 tiers pour l'actualisation des pageRanks.<br>
+						Nous ne pensons pas que l'on puisse améliorer la structure du code d'avantage d'après nos connaissances. Cependans, l'utilisations de certaines librairies pour l'actualisation des pageRanks pourrait peut etre améliorer la rapidié. Utiliser un langage plus rapide comme le C par exemple réduirait aussi le temps de calcul. Mais nous n'avons pas poussé notre travail assez loin pour répondre à ces questions.
+					</p>
+
 			<h2>Parlons un peu rapidité</h2>
 			<p>En générant plusieurs matrices d'adjacence aléatoirement de densité 0.5 et en faisant la moyenne du temps de calcul pour chaque taille, nous obtenons les résultats suivants:</p>
 			<div class="row center-block">
@@ -195,7 +263,7 @@
 							<tr><td>2560</td><td>151.906288004</td></tr>
 					    </tbody>
 		 			 </table>
-		 			<small>Test réalisé avec un Intel(R) Core(TM) i3-3110M CPU @ 2.40GHz.</small>
+		 			<small>Test réalisé avec un Intel(R) Core(TM) i3-3110M CPU @ 2.40GHz. ~ 24.5 GFLOPS</small>
 				</div>
 				<div class="col-lg-8">
 					<center><img src="res/img/courbepr.png" style="height: 360px;" /></center>
@@ -203,8 +271,8 @@
 			</div>
 			<hr>
 			<p>
-				Nous pouvons remarquer que lorsqu'on double la taille de la matrice, le temps est multiplié par 4. <br>
-				Déterminons la complexité pour comprendre pourquoi: nous noterons <b>n</b> le nombre de page et <b>d</b> la densité de la matrice (dans l'exemple précédent, 0.5). Certaines estimations sont bien sûr approximatives et ont peu voir pas d'importance.
+				Nous pouvons remarquer que lorsque l'on double la taille de la matrice, le temps est multiplié par 4. <br>
+				Déterminons la complexité pour comprendre pourquoi: nous noterons <b>n</b> le nombre de page et <b>d</b> la densité de la matrice (dans l'exemple précédent, 0.5). Certaines estimations sont bien sûr approximatives et ont peu, voir pas d'importance.
 				<textarea name="code" class="python:nocontrols">
 						import numpy as np 													
 						def pageRank(tabTuple, nbPage, d = .85, maxerr = .001):
@@ -230,52 +298,27 @@
 							return r/sum(r) 
 					</textarea>
 				Nous obtenons donc appriximativement: <pre>C(dn) = 2 + 2n + 8dn + 2n + 3dn² + dn + 4n + n</pre>
-				La complexité est donc en <em>O(dn²)</em>. Ce qui confirme les résultat trouvés précédement: avec une densité de 0.5, lorsque l'on double la taille, le temps est multiplié par quatre.<br><br>
-				Toutefois, notre algorithme reste toujours assez lent. En effet, notre site faisant 600 000 pages cela prendrait un peu plus de 3 mois et 1 semaine pour calculer les pageRanks de notre <a href="https://dumps.wikimedia.org/other/static_html_dumps/September_2007/fr/">version de Wikipédia</a> avec une densité de 0.5.
-			</p>
-			
-			<p>
-				Voyons maintenant le temps que chaque opération prend dans le temps total du calcul du pageRank.<br>
-			</p>
-			<div class="row center-block">
-				<div class="col-lg-4">
-					Nous décomposons le programme en 6 partie:
-					<ul style="padding-top: 20px">
-						<li><b>tinit</b>: initialisation des variables</li>
-						<li><b>trempl</b>: remplissage des variables</li>
-						<li><b>initr</b>: initialisation de <b>r</b></li>
-						<li><b>copyr</b>: sauvegarde de <b>r</b></li>
-						<li><b>actupr</b>: actualisation des pageRanks</li>
-						<li><b>ret</b>: calcul du pourcentage</li>
-					</ul>
+				La complexité est donc en <em>O(dn²)</em>. Ce qui confirme les résultat trouvés précédement: avec une densité de 0.5, lorsque l'on double la taille, le temps est multiplié par quatre.
+				<pre> (0.5 × 10)² = 25 <br> (0.5 × 20)² = 100 <br> (0.5 × 40)² = 400</pre>
+				<br>
+
+				Mais comment etre sûr que notre algorithme se termine ?<br>
+				Notre condition d'arrêt est fixé grâce à <b>maxerr</b>, la limite à partir de laquelle si la différence entre les pageRanks de deux itérations est inferieur, nous sortons de notre boucle.<br>
+				
+				<div class="row center-block">
+					<div class="col-lg-4">
+						<br><br><br>
+						Voici un graphique qui montre bien que les pageRanks convergent tous vers leurs bonne valeur.<br>
+						Chaque courbe correspond au pageRank d'une page d'une matrice aléatoire de taille 10 et de densité 0.5.
+					</div>
+					<div class="col-lg-8">
+						<img src="res/img/convergence.png" style="width: 100%">
+					</div>
 				</div>
-				<div class="col-lg-8" style="border-left: 2px solid #EEE;">
-					Décomposition du temps sur une matrice de taille 500:
-					<table class="table table-hover table-condensed">
-					    <thead>
-					      <tr>
-					        <th></th>
-					        <th>Temps (seconde)</th>
-					        <th>Pourcentage</th>
-					        <th>Code</th>
-					      </tr>
-					    </thead>
-					    <tbody>
-						    <tr><td>tinit</td><td>0.000323057174683</td><td>0.00144766759116</td><td><a href="pageRank.html#code1"><span class="glyphicon glyphicon-link"></span></a></td></tr>
-							<tr><td>trempl</td><td>7.69943404198</td><td>34.5023172564</td><td><a href="pageRank.html#code1"><span class="glyphicon glyphicon-link"></span></a></td></tr>
-							<tr><td>initr</td><td>8.29696655273e-05</td><td>0.000371799499428</td><td><a href="pageRank.html#code2"><span class="glyphicon glyphicon-link"></span></a></td></tr>
-							<tr><td>copyr</td><td>3.81469726562e-05</td><td>0.000170942298587</td><td><a href="pageRank.html#code2"><span class="glyphicon glyphicon-link"></span></a></td></tr>
-							<tr><td>actupr</td><td>14.6154201031</td><td>65.4938867562</td><td><a href="pageRank.html#code3"><span class="glyphicon glyphicon-link"></span></a></td></tr>
-							<tr><td>ret</td><td>0.000402927398682</td><td>0.00180557802883</td><td><a href="pageRank.html#code3"><span class="glyphicon glyphicon-link"></span></a></td></tr>
-					    </tbody>
-					</table>
-				</div>
-			</div>
-			<p>
-				On remarque qu'environ un tier des opérations sont utilisés pour trouver le nombre de liens sortant de chaque page et les liens entrant des pages. Et environ 2 tiers pour l'actualisation des pageRanks.<br>
-				Nous ne pensons pas que l'on puisse améliorer la structure du code plus que cela. Cependans, l'utilisations de certaines librairies pour l'actualisation des pageRanks pourrait peut etre améliorer la rapidié. Ce ne sont que des hypothèses, nous n'avons pas poussé notre travail assez loin pour répondre à cette question.
+
+				<br><br>
+				Notre algorithme termine bien mais il reste toujours assez lent. En effet, notre site faisant 600 000 pages cela prendrait un peu plus de 3 mois et 1 semaine pour calculer les pageRanks de notre <a href="https://dumps.wikimedia.org/other/static_html_dumps/September_2007/fr/">version de Wikipédia</a> avec une densité de 0.5.
 			</p>
-			<h4 style="color:red;">Dire qu'utiliser un autre langage et un pc plus puissant pourrait etre bien. En sachant que les matrices seront peut etre plus creuses que celles utilisés pour les tests. (densité < à 0.5)</h4>
 			
 
 </body>
