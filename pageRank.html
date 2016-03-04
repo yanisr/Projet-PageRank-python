@@ -236,7 +236,7 @@
 					</div>
 					<p>
 						On remarque qu'environ un tiers des opérations sont utilisées pour trouver le nombre de liens sortant de chaque page et les liens entrant des pages. Et environ deux tiers pour l'actualisation des pageRanks.<br>
-						Nous ne pensons pas que l'on puisse améliorer la structure du code davantage d'après nos connaissances. Cependant, l'utilisation de certaines librairies pour l'actualisation des pageRanks pourraient, peut être, améliorer la rapidité. Utiliser un langage plus rapide comme le C par exemple réduirait aussi le temps de calcul. Mais nous n'avons pas poussé notre travail assez loin pour répondre à ces questions.
+						Nous ne pensons pas que l'on puisse améliorer la structure du code davantage d'après nos connaissances. Cependant, l'utilisation de certaines librairies pour l'actualisation des pageRanks pourraient, peut être, améliorer la rapidité. Utiliser un langage plus rapide comme le C par exemple réduirait aussi le temps de calcul. <br>
 					</p>
 
 			<h2>Parlons un peu rapidité</h2>
@@ -319,6 +319,68 @@
 				<br><br>
 				Notre algorithme termine bien mais il reste toujours assez lent. En effet, notre site faisant plus de 600 000 pages cela prendrait un peu plus de 3 mois et 1 semaine pour calculer les pageRanks de notre <a href="https://dumps.wikimedia.org/other/static_html_dumps/September_2007/fr/">version de Wikipédia</a> avec une densité de 0.5. Cependant, nous utiliserons certainement un ordinateur plus rapide et la matrice sera sans doute plus creuse. Mais nous n'avons pas encore estimé sa densité.
 			</p>
+			<p>
+				Plus haut nous avons évoqué le langage C pour amélioré la rapiditée de nos calculs.
+				Nous avons donc utilisé <a href="http://cython.org/">Cython</a> afin de confirmer ou non nos idées.<br>
+				Voici les comparaisons des vitesses de calcul des pageRanks de matrices de densité 0.5 de différentes tailles:
+			</p>
+			<div class="row center-block">
+				<div class="col-lg-6">
+					<p>Ici, nous avons des comparaisons entre python et cython sur des matrices de petite taille.</p>
+					<img src="res/img/cythin-python petite matrices.png" style="width: 100%">
+					<table class="table table-hover table-condensed">
+					    <thead>
+					      <tr>
+					        <th>taille</th>
+					        <th>temps Python</th>
+					        <th>temps Cython</th>
+					        <th>Différence</th>
+					        <th>Différence (%)</th>
+					      </tr>
+					    </thead>
+					    <tbody>
+						    <tr><td>100</td><td>0,2755553126</td><td>0,266179502</td><td>0,0093758106</td><td>3,40%</td></tr>
+							<tr><td>200</td><td>1,1510879993</td><td>1,1422321796</td><td>0,0088558197</td><td>0,77%</td></tr>
+							<tr><td>300</td><td>2,8746445179</td><td>2,7382267714</td><td>0,1364177466</td><td>4,75%</td></tr>
+							<tr><td>400</td><td>4,4757537246</td><td>4,1996290088</td><td>0,2761247158</td><td>6,17%</td></tr>
+							<tr><td>500</td><td>5,5339694619</td><td>5,5635021925</td><td>-0,0295327306</td><td>-0,53%</td></tr>
+							<tr><td>600</td><td>8,1033943892</td><td>8,6314452887</td><td>-0,5280508995</td><td>-6,52%</td></tr>
+							<tr><td>700</td><td>11,4311102629</td><td>11,8665540218</td><td>-0,4354437589</td><td>-3,81%</td></tr>
+							<tr><td>800</td><td>14,7345114946</td><td>14,4028337598</td><td>0,3316777348</td><td>2,25%</td></tr>
+							<tr><td>900</td><td>18,8359529972</td><td>18,6217358112</td><td>0,214217186</td><td>1,14%</td></tr>
+							<tr><td>1000</td><td>22,7776833177</td><td>23,4172182679</td><td>-0,6395349502</td><td>-2,81%</td></tr>
+							<tr><td></td>		<td></td>			<td></td>			<td><b>moyenne</b></td><td><b>0,48%</b></td></tr>
+					    </tbody>
+					</table>
+					<p>En regardant la moyenne des différences en poucentage, on constate qu'utiliser cython est plus rapide. Cependant, cela n'est pas flagrant. On remarque que python a été bien plus rapide sur la matrice de taille 600. Voyons si sur des matrices de plus grande taille cela vaut le coup d'utiliser Cython.</p>
+				</div>
+				<div class="col-lg-6">
+					<p>Ici, nous avons des comparaisons entre python et cython sur des matrices de plus grande taille.</p>
+					<img src="res/img/cythin-python moyenne matrices.png" style="width: 100%">
+					<table class="table table-hover table-condensed">
+					    <thead>
+					      <tr>
+					        <th>taille</th>
+					        <th>temps Python</th>
+					        <th>temps Cython</th>
+					        <th>Différence</th>
+					        <th>Différence (%)</th>
+					      </tr>
+					    </thead>
+					    <tbody>
+						    <tr><td>1000</td><td>22,223692596</td><td>21,6504797339</td><td>2,58%</td><td>0,5732128621</td></tr>
+							<tr><td>2000</td><td>84,1480689049</td><td>84,1698441505</td><td>-0,03%</td><td>-0,0217752456</td></tr>
+							<tr><td>4000</td><td>338,448674917</td><td>338,02710104</td><td>0,12%</td><td>0,421573877</td></tr>
+							<tr><td>5000</td><td>523,624388933</td><td>503,522094011</td><td>3,84%</td><td>20,102294922</td></tr>
+							<tr><td></td>		<td></td>			<td></td>			<td><b>moyenne</b></td><td><b>1,63%</b></td></tr>
+					    </tbody>
+					</table>
+					<p>Sur des matrices de plus grande taille, nous pouvons voir un gain de temps de quelques secondes. Par exemple avec la matrice de taille 5000, nous gagnons 20 secondes. Ce qui nous donne en moyenne une rapidité acrue de 1.63% par rapport au calcul avec Python. Du a une limitation materielle et temporelle pour réaliser ces tests, nous n'avons pas pu utiliser une taille de condition réelle de matrice. Mais nous pouvons quand même dire qu'avec une matrice de taille 600 000, il y aura un gain de temps.</p>
+				</div>
+			</div>
+			<br>
+			<p>Au vu des résultats de ces tests, nous pouvons vérifier que Cython nous fera gagner du temps pour le calcul des pageRanks.</p>
+
 			
 
 </body>
